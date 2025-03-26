@@ -2,6 +2,7 @@ package com.group3.backend.controller;
 
 import com.group3.backend.io.AdapterFileReader;
 import com.group3.backend.io.ExcelReader;
+import com.group3.backend.io.FileReaderConverter;
 import com.group3.backend.io.PdfReader;
 import com.group3.backend.model.Course;
 
@@ -19,22 +20,16 @@ public class ScheduleController {
     private AdapterFileReader reader;
 
     @GetMapping(value = "/file", produces = "text/html; charset=UTF-8")
-    public String getScheduleAsHtml() throws IOException {
-        reader = new ExcelReader();
+    public String getScheduleAsHtml(@RequestParam String fileType) throws IOException {
+        reader = FileReaderConverter.getFileReader(fileType);
 
-        // We will have a File Reader.
-        // It will get excel or pdf as filetype
-        // It will return ExcelReader or PdfReader based on filetype
-        //
-        // reader = new FileReader(fileType = "excel");
-        // ExcelReader reader = new ExcelReader();
+        if (reader != null) {
+            List<Course> courses = reader.readSchedule();
 
-        List<Course> courses = reader.readSchedule();
+            List<String> days = List.of("Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma");
+            List<String> hours = List.of("08:45-09:30", "09:45-10:30", "10:45-11:30", "11:45-12:30");
 
-        List<String> days = List.of("Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma");
-        List<String> hours = List.of("08:45-09:30", "09:45-10:30", "10:45-11:30", "11:45-12:30");
-
-        StringBuilder html = new StringBuilder("""
+            StringBuilder html = new StringBuilder("""
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -64,29 +59,33 @@ public class ScheduleController {
                 </tr>
             """);
 
-        for (String hour : hours) {
-            html.append("<tr>\n");
-            html.append("<td class=\"time-slot\">").append(hour).append("</td>\n");
+            for (String hour : hours) {
+                html.append("<tr>\n");
+                html.append("<td class=\"time-slot\">").append(hour).append("</td>\n");
 
-            for (String day : days) {
-                html.append("<td>");
-                courses.stream()
-                        .filter(c -> c.getDay().equalsIgnoreCase(day) && c.getTime().equalsIgnoreCase(hour))
-                        .forEach(c -> html.append("<span class=\"course-name\">")
-                                .append(c.getCourseName()).append("</span><br>")
-                                .append("<span class=\"instructor\">").append(c.getInstructor()).append("</span><br>")
-                                .append("<span class=\"classroom\">").append(c.getClassroom()).append("</span><br><br>"));
-                html.append("</td>\n");
+                for (String day : days) {
+                    html.append("<td>");
+                    courses.stream()
+                            .filter(c -> c.getDay().equalsIgnoreCase(day) && c.getTime().equalsIgnoreCase(hour))
+                            .forEach(c -> html.append("<span class=\"course-name\">")
+                                    .append(c.getCourseName()).append("</span><br>")
+                                    .append("<span class=\"instructor\">").append(c.getInstructor()).append("</span><br>")
+                                    .append("<span class=\"classroom\">").append(c.getClassroom()).append("</span><br><br>"));
+                    html.append("</td>\n");
+                }
+                html.append("</tr>\n");
             }
-            html.append("</tr>\n");
-        }
 
-        html.append("""
+            html.append("""
               </table>
             </body>
             </html>
             """);
 
-        return html.toString();
+            return html.toString();
+        }
+        else {
+            return "";
+        }
     }
 }
