@@ -26,7 +26,7 @@ public class ExcelReader implements AdapterFileReader {
                 Row row = sheet.getRow(rowIndex);
                 if (row == null) continue;
 
-                String timeSlot = rowIndex >= 1 && rowIndex <= 4 ? "08:45-09.30"  : rowIndex >= 5 && rowIndex <= 11 ? "09:45-10:30" : rowIndex >= 12 && rowIndex <= 20 ? "10:45-11:30" : "11:45-12:30";
+                String timeSlot = rowIndex >= 1 && rowIndex <= 4 ? "08:45-09:30"  : rowIndex >= 5 && rowIndex <= 11 ? "09:45-10:30" : rowIndex >= 12 && rowIndex <= 20 ? "10:45-11:30" : "11:45-12:30";
 
                 for (int col = 1; col < row.getLastCellNum(); col += 3) {
                     String classroom = getCellValue(row.getCell(col));
