@@ -4,6 +4,8 @@ import com.group3.backend.io.AdapterFileReader;
 import com.group3.backend.io.ExcelReader;
 import com.group3.backend.io.PdfReader;
 import com.group3.backend.model.Course;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,12 +14,21 @@ import java.io.IOException;
 import java.util.*;
 
 @RestController
+@CrossOrigin("*")
 public class ScheduleController {
     private AdapterFileReader reader;
 
     @GetMapping(value = "/file", produces = "text/html; charset=UTF-8")
     public String getScheduleAsHtml() throws IOException {
         reader = new ExcelReader();
+
+        // We will have a File Reader.
+        // It will get excel or pdf as filetype
+        // It will return ExcelReader or PdfReader based on filetype
+        //
+        // reader = new FileReader(fileType = "excel");
+        // ExcelReader reader = new ExcelReader();
+
         List<Course> courses = reader.readSchedule();
 
         List<String> days = List.of("Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma");
