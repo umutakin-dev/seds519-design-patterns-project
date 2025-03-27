@@ -1,62 +1,55 @@
 package com.group3.backend.io;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group3.backend.model.Course;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PdfReader implements AdapterFileReader {
+
+    // URL of your FastAPI endpoint (adjust as needed)
+    private static final String FASTAPI_ENDPOINT = "http://localhost:8000/process-static-pdf/";
+
     @Override
     public List<Course> readSchedule() {
         List<Course> entries = new ArrayList<>();
-        try (PDDocument document = PDDocument.load(new File(System.getProperty("user.dir") + "/backend/src/main/resources/sources/2024-25CourseSchedule.pdf"))) {
-            PDFTextStripper pdfStripper = new PDFTextStripper();
-            pdfStripper.setSortByPosition(true);
-            String text = pdfStripper.getText(document);
+        try {
+            // Create an HttpClient
+            HttpClient client = HttpClient.newHttpClient();
 
-            String[] lines = text.split("\n");
-            String currentTimeSlot = "Unknown";
+            // Build the GET request to your FastAPI endpoint
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(FASTAPI_ENDPOINT))
+                    .GET()
+                    .build();
 
-            // Pattern to detect time slots like 08:45-9:30
-            Pattern timePattern = Pattern.compile("\\d{2}:\\d{2}-\\d{1,2}:\\d{2}");
-            // Pattern to detect course blocks like D1 ENG102 SA
-            Pattern coursePattern = Pattern.compile("(D[0-5]|L1)\\s+([A-Z]{3,}[0-9]{3})\\s*([A-ZÇĞİÖŞÜa-zçğıöşü]*)");
+            // Send the request and retrieve the response body as a String
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String responseBody = response.body();
 
-            for (String line : lines) {
-                line = line.trim();
+            // For debugging, print out the raw response
+            System.out.println("Response from FastAPI: " + responseBody);
 
-                // Check if the line updates the current time slot
-                Matcher timeMatcher = timePattern.matcher(line);
-                if (timeMatcher.find()) {
-                    currentTimeSlot = timeMatcher.group();
-                }
+            // Use Jackson to parse the JSON response
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(responseBody);
 
-                // Now extract all courses from the line
-                Matcher courseMatcher = coursePattern.matcher(line);
-                while (courseMatcher.find()) {
-                    String classroom = courseMatcher.group(1);
-                    String courseCode = courseMatcher.group(2);
-                    String instructor = courseMatcher.group(3).isEmpty() ? "-" : courseMatcher.group(3);
+            // Extract the "course_schedule" array from the JSON response
+            JsonNode courseScheduleNode = root.get("course_schedule");
 
-                    Course course = new Course();
-                    course.setDay("Auto");
-                    course.setTime(currentTimeSlot);
-                    course.setClassroom(classroom);
-                    course.setCourseName(courseCode);
-                    course.setInstructor(instructor);
-                    entries.add(course);
-                }
-            }
-        } catch (IOException e) {
+            // Convert the JSON array into a List<Course>
+            entries = mapper.readValue(courseScheduleNode.toString(), new TypeReference<List<Course>>() {});
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return entries;
     }
-
-
 }

@@ -11,9 +11,41 @@
   - JAVA
   - SPRING FRAMEWORK (REST API)
   - APACHE POI ? (FILE PARSING)
+- SERVICES
+  - PDF PARSER
+    - FASTAPI
+    - UVICORN
+    - GOOGLE GEMINI
 - DIAGRAMS
   - DRAW.IO
   - EXCALIDRAW.COM
+  
+## BACKEND
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+## PDF SERVICE
+
+```bash
+cd services/course-parse/
+```
+
+Inside this folder, we need to create a file ".env".
+Inside this file, we need to create a variable called "GEMINI_API_KEY" and add our gemini key here.
+
+It will look like this:
+
+```text
+GEMINI_API_KEY=<API_KEY>
+```
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
 
 ## FRONTEND
 
@@ -26,5 +58,6 @@ pnpm dlx create-react-app frontend
 ### 2. Start Frontend Server
 
 ```bash
+cd frontend
 pnpm start
 ```
