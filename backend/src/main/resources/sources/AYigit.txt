@@ -1,0 +1,2 @@
+CENG 218;Monday;13:30
+CENG 216;Friday;09:45
