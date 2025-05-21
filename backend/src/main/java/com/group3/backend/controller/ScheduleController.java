@@ -1,19 +1,12 @@
 package com.group3.backend.controller;
 
-import com.group3.backend.decorator.Scheduler;
 import com.group3.backend.factory.GraduateScheduleFactory;
 import com.group3.backend.factory.ScheduleFactory;
 import com.group3.backend.factory.UndergraduateScheduleFactory;
 import com.group3.backend.io.AdapterFileReader;
-import com.group3.backend.io.ExcelReader;
 import com.group3.backend.io.FileReaderConverter;
-import com.group3.backend.io.PdfReader;
 import com.group3.backend.io.TxtReader;
 import com.group3.backend.model.Course;
-import com.group3.backend.decorator.LoggingScheduler;
-import com.group3.backend.decorator.BasicScheduler;
-import com.group3.backend.strategy.NoOverlapStrategy;
-import com.group3.backend.util.CourseTypeUtil;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -99,44 +92,28 @@ public class ScheduleController {
 
   @GetMapping("/generateSchedule")
   public String getScheduleForLecturerAsHtml(@RequestParam String classType) throws IOException {
-    TxtReader txt = new TxtReader();
-    List<Course> courses = txt.readSchedule();
+    // 1) read *all* courses from txt
+    List<Course> allCourses = new TxtReader().readSchedule();
 
-    List<Course> scheduled = new ArrayList<>();
-    Scheduler scheduler = new BasicScheduler(scheduled, new NoOverlapStrategy());
+    // 2) pick your factory
+    ScheduleFactory factory = "graduate".equalsIgnoreCase(classType)
+        ? new GraduateScheduleFactory()
+        : new UndergraduateScheduleFactory();
 
-    if (classType.equals("undergraduate")) {
-      for (Course course : courses) {
-        if (!CourseTypeUtil.isGraduateCourse(course)) {
-          scheduler.schedule(course);
-        }
-      }
-    } else if (classType.equals("graduate")) {
-      for (Course course : courses) {
-        if (CourseTypeUtil.isGraduateCourse(course)) {
-          scheduler.schedule(course);
-        }
-      }
-    }
+    // 3) let it filter + schedule in one go
+    List<Course> scheduled = factory.build(allCourses);
 
-    StringBuilder html = new StringBuilder();
-    html.append("<table border='1'>")
-        .append("<tr>")
-        .append("<th>Course</th>")
-        .append("<th>Instructor</th>")
-        .append("<th>Day</th>")
-        .append("<th>Time</th>")
-        .append("</tr>");
-
-    for (Course course : scheduler.getCourses()) {
+    // 4) render your HTML table however you like…
+    StringBuilder html = new StringBuilder("<table border='1'>")
+        .append("<tr><th>Course</th><th>Instructor</th><th>Day</th><th>Time</th></tr>");
+    for (Course c : scheduled) {
       html.append("<tr>")
-          .append("<td>").append(course.getCourseName()).append("</td>")
-          .append("<td>").append(course.getInstructor()).append("</td>")
-          .append("<td>").append(course.getDay()).append("</td>")
-          .append("<td>").append(course.getTime()).append("</td>")
+          .append("<td>").append(c.getCourseName()).append("</td>")
+          .append("<td>").append(c.getInstructor()).append("</td>")
+          .append("<td>").append(c.getDay()).append("</td>")
+          .append("<td>").append(c.getTime()).append("</td>")
           .append("</tr>");
     }
-
     html.append("</table>");
     return html.toString();
   }
