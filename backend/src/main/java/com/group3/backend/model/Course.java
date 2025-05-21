@@ -11,10 +11,11 @@ public class Course {
 
     }
 
-    public Course(String day, String courseName, String time) {
+    public Course(String day, String courseName, String time, String instructor) {
         this.day = day;
         this.courseName = courseName;
         this.time = time;
+        this.instructor = instructor;
     }
 
     public Course(String day, String courseName, String time, String instructor, String classroom) {

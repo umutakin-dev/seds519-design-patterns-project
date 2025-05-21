@@ -1,0 +1,2 @@
+SEDS 537;Monday;16:30
+CENG 463;Friday;09:45

@@ -1,0 +1,2 @@
+CENG 590;Monday;09:45
+CENG 400;Tuesday;16:30

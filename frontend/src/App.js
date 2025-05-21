@@ -25,6 +25,26 @@ function App() {
         }
     };
 
+    const getSchedule = async (classType) => {
+        setLoading(true);
+        setError("");
+
+
+        try {
+            const response = await axios.get(`http://localhost:8080/generateSchedule?classType=${classType}`, {
+                headers: { Accept: "text/html" },
+                responseType: "text",
+            });
+
+            setHtmlContent(response.data);
+        } catch (err) {
+            console.error("Failed to load schedule:", err);
+            setError("Something went wrong while loading the schedule.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div style={{ padding: "20px" }}>
             <h2>Course Schedule</h2>
@@ -32,7 +52,9 @@ function App() {
                 <button onClick={() => loadSchedule("excel")} style={{ marginRight: "10px" }}>
                     Load Excel
                 </button>
-                <button onClick={() => loadSchedule("pdf")}>Load PDF</button>
+                <button onClick={() => loadSchedule("pdf")} style={{ marginRight: "10px" }}>Load PDF</button>
+                <button onClick={() => getSchedule("undergraduate")} style={{ marginRight: "10px" }}>Undergraduate Schedule</button>
+                <button onClick={() => getSchedule("graduate")}>Graduate Schedule</button>
             </div>
 
             {loading && <p>Loading...</p>}

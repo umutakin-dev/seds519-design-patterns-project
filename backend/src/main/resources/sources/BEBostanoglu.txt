@@ -1,0 +1,2 @@
+SEDS 482;Wednesday;16:30
+CENG 435;Thursday;09:45
