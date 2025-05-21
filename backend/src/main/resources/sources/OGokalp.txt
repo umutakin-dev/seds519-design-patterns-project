@@ -1,0 +1,6 @@
+CENG 112;Thursday;09:45
+CENG 112;Thursday;10:45
+CENG 112;Thursday;11:45
+CENG 632;Monday;13:30
+CENG 632;Monday;14:30
+CENG 632;Monday;15:30
